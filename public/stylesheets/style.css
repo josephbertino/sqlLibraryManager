@@ -6,3 +6,12 @@ body {
 a {
   color: #00B7FF;
 }
+
+a.button {
+  font: bold 20px Arial;
+  text-decoration: none;
+  background-color: teal;
+  color: white;
+  padding: 12px 16px 12px 16px;
+  border-radius: 6px;
+}
