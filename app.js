@@ -6,18 +6,27 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var { Book } = require('./models');
 
 var app = express();
 
+// import the instance of sequelize that was instantiated in models/index.js 
 var { sequelize } = require('./models');
+// import the function that will fill the books db with some initial entries
+var fillDB = require('./fillDB');
 
 (async () => {
   try {
+    //  asynchronously connect to the database
     await sequelize.authenticate();
     console.log("Authentication to the sequelize database successful!");
 
+    // sync the model with the database
     await sequelize.sync({force: true});
     console.log("Model synced to the database!")
+
+    // fill the books db with some initial entries
+    await fillDB(Book);
 
   } catch (error) {
     throw error;
@@ -37,32 +46,34 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 
-// catch 404 and forward to error handler
+/* Catch 404 error and forward to error handler */
 app.use( (req, res, next) => {
-  const error = new Error();
-  error.status = 404;
-  error.message = "Sorry! We couldn't find the page you were looking for."
-  res.status(404).render('page-not-found', { 
-    error, 
-    title: "Page Not Found"
-  });
+  next(createError(404, "Sorry! We couldn't find the page you were looking for."));
 });
 
-// error handler
+/* Error handler */
 app.use(function(err, req, res, next) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  // render the error page
   err.status = err.status || 500;
-  err.message = err.message || "500 Error. Apologies!"
-  console.log(err.status + ": " + err.message);
+  err.message = err.message || "500 Error... Apologies! We are working on the issue."
+  res.status(err.status);
 
-  res.status(err.status).render('error', {
-    error: err, 
-    title: "Server Error"
-  });
+  if (err.status === 404) {
+    // render the 404 error page
+    res.render('404-page-not-found', { 
+      error: err, 
+      title: "Page Not Found"
+    });
+  } else {
+    // render the catch-all error page
+    res.render('server-error', {
+      error: err, 
+      title: "Server Error"
+    }); 
+  }
 });
 
 module.exports = app;
