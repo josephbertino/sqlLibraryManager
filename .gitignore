@@ -12,6 +12,7 @@
 # /build
 
 # misc
+library.db
 /mockups
 package-lock.json
 config.js
